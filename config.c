@@ -1458,7 +1458,7 @@ void setup_config_box(struct controlbox *b, int midsession,
 				HELPCTX(session_saved),
 				sessionsaver_handler, P(ssd));
     ssd->listbox->generic.column = 0;
-    ssd->listbox->listbox.height = 7;
+    ssd->listbox->listbox.height = 13;
     if (!midsession) {
 	ssd->loadbutton = ctrl_pushbutton(s, "Load", 'l',
 					  HELPCTX(session_saved),
@@ -1831,6 +1831,15 @@ void setup_config_box(struct controlbox *b, int midsession,
     ctrl_checkbox(s, "Warn before closing window", 'w',
 		  HELPCTX(behaviour_closewarn),
 		  conf_checkbox_handler, I(CONF_warn_on_close));
+
+    s = ctrl_getset(b, "Window/Behaviour", "otheropts", NULL);
+    c = ctrl_radiobuttons(s, "Close window on exit:", 'x', 4,
+			  HELPCTX(session_coe),
+			  conf_radiobutton_handler,
+			  I(CONF_close_on_exit),
+			  "Always", I(FORCE_ON),
+			  "Never", I(FORCE_OFF),
+			  "Only on clean exit", I(AUTO), NULL);
 
     /*
      * The Window/Translation panel.

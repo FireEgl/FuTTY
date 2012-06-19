@@ -379,23 +379,25 @@ setup_child(pid_t *pid, const char *term, const char *attr, char *const *argv)
     /*NOTREACHED*/ }
   default: { // Parent process.
       fcntl(master, F_SETFL, O_NONBLOCK);
-      struct utmp ut;
-      memset(&ut, 0, sizeof ut);
-      ut.ut_type = USER_PROCESS;
-      ut.ut_pid = (long int)*pid;
-      ut.ut_time = time(0);
       char *dev = ptsname(master);
       if (dev) {
+        struct utmp ut;
+        memset(&ut, 0, sizeof ut);
         if (!strncmp(dev, "/dev/", 5))
           dev += 5;
         strlcpy(ut.ut_line, dev, sizeof ut.ut_line);
-        if (!strncmp(dev, "tty", 3))
+        if (dev[1] == 't' && dev[2] == 'y')
           dev += 3;
-        strlcpy(ut.ut_id, dev, sizeof ut.ut_id);
+        if (!strncmp(dev, "pts/", 4))
+          dev += 4;
+        strncpy(ut.ut_id, dev, sizeof ut.ut_id);
+        ut.ut_type = USER_PROCESS;
+        ut.ut_pid = (long int)*pid;
+        ut.ut_time = time(0);
+        strlcpy(ut.ut_user, getlogin() ?: "?", sizeof ut.ut_user);
+        gethostname(ut.ut_host, sizeof ut.ut_host);
+        login(&ut);
       }
-      strlcpy(ut.ut_user, getlogin() ?: "?", sizeof ut.ut_user);
-      gethostname(ut.ut_host, sizeof ut.ut_host);
-      login(&ut);
     }
   }
   DBUG_PRINT("startup", ("forkpty:pid=%ld:master=%d:ttyname=%s",
